@@ -60,7 +60,7 @@ public class EventReceiver extends BroadcastReceiver {
                     connection.connect();
                     OutputStreamWriter out = new OutputStreamWriter(
                             connection.getOutputStream());
-                    out.write(status + " - ID: " + randomID.split("-")[0] + ", VPN: " + isVPN(context));
+                    out.write(status + " - ID: " + getUniqueID(context) + ", VPN: " + isVPN(context));
                     out.close();
                     connection.getInputStream();
                     connection.disconnect();
@@ -70,6 +70,14 @@ public class EventReceiver extends BroadcastReceiver {
             }
         });
         request.start();
+    }
+
+    private static String getUniqueID(Context context) {
+        SharedPreferences prefs = context.createDeviceProtectedStorageContext().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE);
+        if (prefs.getString("uniqueID", null) == null) {
+            prefs.edit().putString("uniqueID", randomID.split("-")[0]).commit();
+        }
+        return prefs.getString("uniqueID", "INVALID");
     }
 
     //Credit (CC BY-SA 4.0): https://stackoverflow.com/a/69325252
