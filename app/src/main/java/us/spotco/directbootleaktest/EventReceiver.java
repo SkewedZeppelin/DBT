@@ -23,6 +23,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 
 import java.io.OutputStreamWriter;
@@ -58,7 +60,7 @@ public class EventReceiver extends BroadcastReceiver {
                     connection.connect();
                     OutputStreamWriter out = new OutputStreamWriter(
                             connection.getOutputStream());
-                    out.write(status + ": " + randomID);
+                    out.write(status + " - ID: " + randomID.split("-")[0] + ", VPN: " + isVPN(context));
                     out.close();
                     connection.getInputStream();
                     connection.disconnect();
@@ -75,5 +77,13 @@ public class EventReceiver extends BroadcastReceiver {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    //Credit (CC BY-SA 4.0): https://stackoverflow.com/a/55609059
+    private static boolean isVPN(Context context){
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
+        Network activeNetwork = connectivityManager.getActiveNetwork();
+        NetworkCapabilities caps = connectivityManager.getNetworkCapabilities(activeNetwork);
+        return caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN);
     }
 }
