@@ -30,11 +30,10 @@ import android.net.NetworkInfo;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 import java.util.UUID;
 
 public class EventReceiver extends BroadcastReceiver {
-
-    private static String randomID = UUID.randomUUID() + "";
 
     @Override
     public final void onReceive(Context context, Intent intent) {
@@ -47,35 +46,32 @@ public class EventReceiver extends BroadcastReceiver {
     }
 
     public static void sendRequest(String status, Context context) {
-        Thread request = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while(!isNetworkAvailable(context)) {
-                        Thread.sleep(1000);
-                    }
-                    HttpURLConnection connection = (HttpURLConnection) new URL("https://ntfy.sh/DirectBootTesting").openConnection();connection.setConnectTimeout(30000);
-                    connection.addRequestProperty("User-Agent", "Direct Boot Tester/1.0");
-                    connection.setRequestMethod("PUT");
-                    connection.connect();
-                    OutputStreamWriter out = new OutputStreamWriter(
-                            connection.getOutputStream());
-                    out.write(status + " - ID: " + getUniqueID(context) + ", VPN: " + isVPN(context));
-                    out.close();
-                    connection.getInputStream();
-                    connection.disconnect();
-                } catch (Exception e) {
-                    e.printStackTrace();
+        Thread request = new Thread(() -> {
+            try {
+                while(!isNetworkAvailable(context)) {
+                    Thread.sleep(50);
                 }
+                HttpURLConnection connection = (HttpURLConnection) new URL("https://ntfy.sh/DBT-" + getUniqueID(context)).openConnection();
+                connection.setConnectTimeout(30000);
+                connection.addRequestProperty("User-Agent", "Direct Boot Tester/1.0");
+                connection.setRequestMethod("PUT");
+                connection.connect();
+                OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
+                out.write("Status: " + status + ", VPN: " + isVPN(context));
+                out.close();
+                connection.getInputStream();
+                connection.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
         request.start();
     }
 
-    private static String getUniqueID(Context context) {
+    public static String getUniqueID(Context context) {
         SharedPreferences prefs = context.createDeviceProtectedStorageContext().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE);
         if (prefs.getString("uniqueID", null) == null) {
-            prefs.edit().putString("uniqueID", randomID.split("-")[0]).commit();
+            prefs.edit().putString("uniqueID", UUID.randomUUID().toString().toUpperCase().split("-")[0]).commit();
         }
         return prefs.getString("uniqueID", "INVALID");
     }

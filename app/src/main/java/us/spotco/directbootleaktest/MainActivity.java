@@ -16,16 +16,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package us.spotco.directbootleaktest;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        TextView txtLink = findViewById(R.id.txtLink);
+        txtLink.setText("https://ntfy.sh/DBT-" + EventReceiver.getUniqueID(this));
         EventReceiver.sendRequest("started", this);
     }
 }
